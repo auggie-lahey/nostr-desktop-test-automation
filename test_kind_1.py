@@ -5,8 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pytest
-from create_kind_1 import create_kind_1
-from create_npub import signup
+from create_kind_1 import create_kind_1, create_kind_1_reply, fetch_kind_1
+from create_npub import signup, signin
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -54,17 +54,17 @@ clients = {
             ),
         }
     
-def fetch_kind_1(driver, client, nevent):
-    url = clients[client].kind_1.url + nevent
-    print("fetching " + url)
-    driver.get(url)
-    driver.execute_script("localStorage.setItem('write-relays', 'wss://relay.damus.io/');") # NOSTRUDEL DOESN'T SET DEFAULT RELAY
-    driver.execute_script("localStorage.setItem('read-relays', 'wss://relay.damus.io/');")
+# def fetch_kind_1(driver, client, nevent):
+#     url = clients[client].kind_1.url + nevent
+#     print("fetching " + url)
+#     driver.get(url)
+#     driver.execute_script("localStorage.setItem('write-relays', 'wss://relay.damus.io/');") # NOSTRUDEL DOESN'T SET DEFAULT RELAY
+#     driver.execute_script("localStorage.setItem('read-relays', 'wss://relay.damus.io/');")
 
-    note = WebDriverWait(driver, 30).until(
-        lambda d: (element := d.find_element(By.XPATH, clients[client].kind_1.content)).text != "Loading..." and element.text
-    )
-    return note
+#     note = WebDriverWait(driver, 30).until(
+#         lambda d: (element := d.find_element(By.XPATH, clients[client].kind_1.content)).text != "Loading..." and element.text
+#     )
+#     return note
 
 @pytest.mark.parametrize("client", clients.keys())
 def test_kind_1(driver, signup, create_kind_1, client):
@@ -75,3 +75,20 @@ def test_kind_1(driver, signup, create_kind_1, client):
     expected_message = kind_1.replace('\n', ' ')
     actual_message = note.replace('\n', ' ')
     assert note.strip() == kind_1.strip(), f"Assertion failed for client: {client}. Expected: '{expected_message}', but got: '{actual_message}'"
+
+@pytest.mark.parametrize("client", ["nostrudel"])
+def test_kind_1_reply(driver, client):
+    nevent = "nevent1qqsg9vtm8gtms3h3kfu7v0e7859gzprm07y3wn49qn80rdvh6y8ysksg5kcq0"
+    nsec = "nsec1xvhctlw9f7utezxp5qdq5murx79myxlqmrdqx3yu7xyfqvd7flrq497wdm"
+    create_url = "https://nostrudel.ninja/#/n/"
+    reply = "another reply test"
+    print("Testing " + client)
+    signin(driver, nsec)
+    replied = create_kind_1_reply(driver, clients, client, nevent, reply)
+    assert reply in replied
+#    chakra-text css-0
+#    <div class="css-1743pet" 
+    
+    # expected_message = kind_1.replace('\n', ' ')
+    # actual_message = note.replace('\n', ' ')
+    # assert note.strip() == kind_1.strip(), f"Assertion failed for client: {client}. Expected: '{expected_message}', but got: '{actual_message}'"

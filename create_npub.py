@@ -6,8 +6,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pytest
 
+def nostrudel_setup_relays(driver):
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[text()='Relays']"))).click()
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[text()='Popular Relays']"))).click()
+
+
+def signin(driver, nsec):
+    # this is pretty much just nostrudels signup probably should be a different generic method
+    driver.get("https://nostrudel.ninja/#/signin/nsec")
+    input_field = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.NAME, "value")) 
+    )
+    input_field.send_keys(nsec)
+    input_field.submit()
+    time.sleep(1)
+    driver.switch_to.alert.dismiss();
+    nostrudel_setup_relays(driver)
+
 @pytest.fixture(scope="session")
 def signup(driver):
+    # TODO should have 1 function per client
     driver.get("https://nostrudel.ninja/#/signup")
     input_field = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.NAME, "name")) 

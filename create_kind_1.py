@@ -32,3 +32,25 @@ this npub and note was automatically (fully) generated via selenium on noStrudel
 # 3rd line"""
 
     yield nevent, note_text
+
+def fetch_kind_1(driver, clients, client, nevent):
+    url = clients[client].kind_1.url + nevent
+    print("fetching " + url)
+    driver.get(url)
+    driver.execute_script("localStorage.setItem('write-relays', 'wss://relay.damus.io/');") # NOSTRUDEL DOESN'T SET DEFAULT RELAY
+    driver.execute_script("localStorage.setItem('read-relays', 'wss://relay.damus.io/');")
+
+    note = WebDriverWait(driver, 30).until(
+        lambda d: (element := d.find_element(By.XPATH, clients[client].kind_1.content)).text != "Loading..." and element.text
+    )
+    return note
+
+def create_kind_1_reply(driver, clients, client, nevent, reply):
+    fetch_kind_1(driver, clients, client, nevent)
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@title='Reply']"))).click()
+    textarea_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//textarea[@class='chakra-textarea rta__textarea css-1pvfnso']")))
+    textarea_element.clear()
+    textarea_element.send_keys(reply)
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Submit']"))).click()
+    replied = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'css-1743pet')]")))
+    return replied.text
